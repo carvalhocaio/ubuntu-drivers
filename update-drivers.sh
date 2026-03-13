@@ -21,17 +21,21 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+REAL_USER="${SUDO_USER:-$USER}"
+REAL_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
+as_user() { sudo -u "$REAL_USER" bash -c "$*"; }
+
 header "Driver Update — Lenovo ThinkPad E14"
 
 # ──────────────────────────────────────────────
-header "1/7 — Updating repositories and system packages"
+header "1/10 — Updating repositories and system packages"
 # ──────────────────────────────────────────────
 apt update
 apt upgrade -y
 info "System packages updated"
 
 # ──────────────────────────────────────────────
-header "2/7 — Video Drivers (Intel Iris Xe / Mesa)"
+header "2/10 — Video Drivers (Intel Iris Xe / Mesa)"
 # ──────────────────────────────────────────────
 apt install -y --only-upgrade \
     mesa-vulkan-drivers \
@@ -53,7 +57,7 @@ fi
 info "Video drivers updated"
 
 # ──────────────────────────────────────────────
-header "3/7 — Audio Drivers (Intel Tiger Lake / PipeWire)"
+header "3/10 — Audio Drivers (Intel Tiger Lake / PipeWire)"
 # ──────────────────────────────────────────────
 apt install -y --only-upgrade \
     pipewire \
@@ -68,7 +72,7 @@ apt install -y --only-upgrade \
 info "Audio drivers updated"
 
 # ──────────────────────────────────────────────
-header "4/7 — Network Drivers (Realtek Wi-Fi/Bluetooth/Ethernet)"
+header "4/10 — Network Drivers (Realtek Wi-Fi/Bluetooth/Ethernet)"
 # ──────────────────────────────────────────────
 apt install -y --only-upgrade \
     firmware-realtek \
@@ -79,7 +83,7 @@ apt install -y --only-upgrade \
 info "Network drivers updated"
 
 # ──────────────────────────────────────────────
-header "5/7 — Firmware and Security Drivers"
+header "5/10 — Firmware and Security Drivers"
 # ──────────────────────────────────────────────
 
 # Kernel and security modules
@@ -110,7 +114,7 @@ fi
 info "Security drivers and firmware updated"
 
 # ──────────────────────────────────────────────
-header "6/7 — Development Tools"
+header "6/10 — Development Tools"
 # ──────────────────────────────────────────────
 apt install -y \
     make \
@@ -135,7 +139,82 @@ apt install -y \
 info "Development tools installed"
 
 # ──────────────────────────────────────────────
-header "7/7 — Cleanup"
+header "7/10 — Shell Setup (Fish + Starship)"
+# ──────────────────────────────────────────────
+apt install -y fish
+chsh -s /usr/bin/fish "$REAL_USER"
+info "Fish shell installed and set as default"
+
+curl -sS https://starship.rs/install.sh | sh -s -- -y
+info "Starship prompt installed"
+
+as_user mkdir -p "$REAL_HOME/.config/fish"
+
+cat > "$REAL_HOME/.config/fish/config.fish" << 'FISHEOF'
+if status is-interactive
+    starship init fish | source
+    eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+    set -gx PATH $HOME/.asdf/shims $PATH
+end
+FISHEOF
+chown "$REAL_USER":"$REAL_USER" "$REAL_HOME/.config/fish/config.fish"
+
+cat > "$REAL_HOME/.config/starship.toml" << 'STAREOF'
+[character]
+success_symbol = "[λ](bold green)"
+
+[package]
+disabled = true
+
+[nodejs]
+symbol = "⬢ "
+STAREOF
+chown "$REAL_USER":"$REAL_USER" "$REAL_HOME/.config/starship.toml"
+info "Fish and Starship configured"
+
+# ──────────────────────────────────────────────
+header "8/10 — Homebrew + asdf"
+# ──────────────────────────────────────────────
+if [[ ! -d /home/linuxbrew/.linuxbrew ]]; then
+    as_user 'NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+    info "Homebrew installed"
+else
+    info "Homebrew already installed"
+fi
+
+as_user 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew install asdf'
+info "asdf installed"
+
+as_user 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && asdf plugin add python || true'
+as_user 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && asdf plugin add nodejs || true'
+info "asdf plugins added (python, nodejs)"
+
+as_user 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && asdf install python 3.10.14 && asdf set --u python 3.10.14'
+info "Python 3.10.14 installed"
+
+as_user 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && asdf install nodejs 24.14.0 && asdf set --u nodejs 24.14.0'
+info "Node.js 24.14.0 installed"
+
+# ──────────────────────────────────────────────
+header "9/10 — Tools (gh CLI + Zed)"
+# ──────────────────────────────────────────────
+if ! command -v gh &>/dev/null; then
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+        | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+        | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+    apt update
+    apt install -y gh
+    info "gh CLI installed"
+else
+    info "gh CLI already installed"
+fi
+
+as_user 'curl -f https://zed.dev/install.sh | sh'
+info "Zed editor installed"
+
+# ──────────────────────────────────────────────
+header "10/10 — Cleanup"
 # ──────────────────────────────────────────────
 apt autoremove -y
 apt autoclean -y
@@ -149,6 +228,12 @@ echo "  Mesa:      $(dpkg -l libgl1-mesa-dri 2>/dev/null | awk '/^ii/{print $3}'
 echo "  PipeWire:  $(pipewire --version 2>/dev/null | head -1 || echo 'N/A')"
 echo "  Microcode: $(dpkg -l intel-microcode 2>/dev/null | awk '/^ii/{print $3}')"
 echo "  fwupd:     $(fwupdmgr --version 2>/dev/null | head -1 || echo 'N/A')"
+echo "  Fish:      $(fish --version 2>/dev/null || echo 'N/A')"
+echo "  Starship:  $(starship --version 2>/dev/null | head -1 || echo 'N/A')"
+echo "  Python:    $(as_user '$HOME/.asdf/shims/python --version' 2>/dev/null || echo 'N/A')"
+echo "  Node.js:   $(as_user '$HOME/.asdf/shims/node --version' 2>/dev/null || echo 'N/A')"
+echo "  gh:        $(gh --version 2>/dev/null | head -1 || echo 'N/A')"
+echo "  Zed:       $(as_user '$HOME/.local/bin/zed --version' 2>/dev/null || echo 'N/A')"
 echo ""
 
 NEEDS_REBOOT=false

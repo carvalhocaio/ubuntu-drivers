@@ -12,7 +12,10 @@ Shell script to update all drivers on a Lenovo ThinkPad E14 running Ubuntu 24.04
 | 4 | **Network** | Realtek Wi-Fi/Ethernet firmware, Bluetooth (BlueZ) |
 | 5 | **Security & Firmware** | Kernel, `intel-microcode`, `thermald`, TPM tools, Lenovo firmware via `fwupd` |
 | 6 | **Dev Tools** | `build-essential`, `libssl-dev`, `libreadline-dev`, `libsqlite3-dev`, `llvm`, `git`, `vim`, and more |
-| 7 | **Cleanup** | Removes orphaned packages |
+| 7 | **Shell Setup** | Fish shell (set as default), Starship prompt, `config.fish`, `starship.toml` |
+| 8 | **Homebrew + asdf** | Homebrew, asdf, Python 3.10.14, Node.js 24.14.0 |
+| 9 | **Tools** | `gh` CLI (GitHub apt repo), Zed editor |
+| 10 | **Cleanup** | Removes orphaned packages |
 
 ## Hardware
 
