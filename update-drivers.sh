@@ -177,6 +177,9 @@ disabled = true
 
 [nodejs]
 symbol = "⬢ "
+
+[gcloud]
+disabled = true
 STAREOF
 chown "$REAL_USER":"$REAL_USER" "$REAL_HOME/.config/starship.toml"
 info "Fish and Starship configured"
