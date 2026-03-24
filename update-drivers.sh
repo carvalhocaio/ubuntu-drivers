@@ -33,14 +33,14 @@ brew_run() { as_user "eval \"\$($BREW shellenv)\" && $*"; }
 header "Driver Update — Lenovo ThinkPad E14"
 
 # ──────────────────────────────────────────────
-header "1/9 — Updating system packages (apt)"
+header "1/10 — Updating system packages (apt)"
 # ──────────────────────────────────────────────
 apt update
 apt upgrade -y
 info "System packages updated"
 
 # ──────────────────────────────────────────────
-header "2/9 — Video Drivers (Intel Iris Xe / Mesa)"
+header "2/10 — Video Drivers (Intel Iris Xe / Mesa)"
 # ──────────────────────────────────────────────
 apt install -y --only-upgrade \
     mesa-vulkan-drivers \
@@ -61,7 +61,7 @@ fi
 info "Video drivers updated"
 
 # ──────────────────────────────────────────────
-header "3/9 — Audio Drivers (Intel Tiger Lake / PipeWire)"
+header "3/10 — Audio Drivers (Intel Tiger Lake / PipeWire)"
 # ──────────────────────────────────────────────
 apt install -y --only-upgrade \
     pipewire \
@@ -76,7 +76,7 @@ apt install -y --only-upgrade \
 info "Audio drivers updated"
 
 # ──────────────────────────────────────────────
-header "4/9 — Network Drivers (Realtek Wi-Fi/Bluetooth/Ethernet)"
+header "4/10 — Network Drivers (Realtek Wi-Fi/Bluetooth/Ethernet)"
 # ──────────────────────────────────────────────
 apt install -y --only-upgrade \
     firmware-realtek \
@@ -87,7 +87,7 @@ apt install -y --only-upgrade \
 info "Network drivers updated"
 
 # ──────────────────────────────────────────────
-header "5/9 — Firmware and Security Drivers"
+header "5/10 — Firmware and Security Drivers"
 # ──────────────────────────────────────────────
 apt install -y --only-upgrade \
     linux-generic \
@@ -114,7 +114,7 @@ fi
 info "Security drivers and firmware updated"
 
 # ──────────────────────────────────────────────
-header "6/9 — Build Dependencies (apt) + Homebrew"
+header "6/10 — Build Dependencies (apt) + Homebrew"
 # ──────────────────────────────────────────────
 
 # System libraries needed for compiling (must stay in apt)
@@ -149,7 +149,41 @@ brew_run "brew install gcc"
 info "Homebrew updated (gcc installed)"
 
 # ──────────────────────────────────────────────
-header "7/9 — Userland Tools (Homebrew)"
+header "7/10 — Docker Engine"
+# ──────────────────────────────────────────────
+
+# Remove conflicting packages
+apt remove -y docker.io docker-compose docker-compose-v2 docker-doc podman-docker containerd runc 2>/dev/null || true
+
+# Set up Docker's official apt repository
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+
+tee /etc/apt/sources.list.d/docker.sources > /dev/null <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+
+apt update
+
+# Install Docker Engine + plugins
+apt install -y \
+    docker-ce \
+    docker-ce-cli \
+    containerd.io \
+    docker-buildx-plugin \
+    docker-compose-plugin
+
+# Add user to docker group (no sudo required after relogin)
+usermod -aG docker "$REAL_USER"
+info "Docker Engine installed (relogin required for group changes)"
+
+# ──────────────────────────────────────────────
+header "8/10 — Userland Tools (Homebrew)"
 # ──────────────────────────────────────────────
 brew_run "brew install git curl wget vim fish starship gh asdf"
 info "Tools installed via Homebrew (git, curl, wget, vim, fish, starship, gh, asdf)"
@@ -163,7 +197,7 @@ chsh -s "$BREW_FISH" "$REAL_USER"
 info "Fish shell set as default (Homebrew version)"
 
 # ──────────────────────────────────────────────
-header "8/9 — Shell Config + Languages (asdf)"
+header "9/10 — Shell Config + Languages (asdf)"
 # ──────────────────────────────────────────────
 as_user mkdir -p "$REAL_HOME/.config/fish"
 
@@ -213,7 +247,7 @@ brew_run "asdf install nodejs 24.14.0 && asdf set --u nodejs 24.14.0"
 info "Node.js 24.14.0 installed"
 
 # ──────────────────────────────────────────────
-header "9/9 — Zed Editor + Cleanup"
+header "10/10 — Zed Editor + Cleanup"
 # ──────────────────────────────────────────────
 as_user 'curl -f https://zed.dev/install.sh | sh'
 info "Zed editor installed"
@@ -231,6 +265,7 @@ echo "  Mesa:      $(dpkg -l libgl1-mesa-dri 2>/dev/null | awk '/^ii/{print $3}'
 echo "  PipeWire:  $(pipewire --version 2>/dev/null | head -1 || echo 'N/A')"
 echo "  Microcode: $(dpkg -l intel-microcode 2>/dev/null | awk '/^ii/{print $3}')"
 echo "  fwupd:     $(fwupdmgr --version 2>/dev/null | head -1 || echo 'N/A')"
+echo "  Docker:    $(docker --version 2>/dev/null || echo 'N/A')"
 echo "  Homebrew:  $(brew_run 'brew --version' 2>/dev/null | head -1 || echo 'N/A')"
 echo "  Git:       $(brew_run 'git --version' 2>/dev/null || echo 'N/A')"
 echo "  Fish:      $(brew_run 'fish --version' 2>/dev/null || echo 'N/A')"
