@@ -246,6 +246,9 @@ info "Python 3.10.14 installed"
 brew_run "asdf install nodejs 24.14.0 && asdf set --u nodejs 24.14.0"
 info "Node.js 24.14.0 installed"
 
+brew_run "npm install -g aicommits"
+info "aicommits installed"
+
 # ──────────────────────────────────────────────
 header "10/10 — Zed Editor + Cleanup"
 # ──────────────────────────────────────────────
