@@ -73,7 +73,7 @@ STEP_TITLE[17]="Wallpaper"
 STEP_TITLE[18]="Git config + rtk"
 
 STEP_DESC[1]="apt update/upgrade"
-STEP_DESC[2]="mesa, intel media, ubuntu-drivers"
+STEP_DESC[2]="mesa, intel media vaapi (non-free), ubuntu-drivers, chrome flags"
 STEP_DESC[3]="pipewire, alsa, sof firmware"
 STEP_DESC[4]="dkms, bluez"
 STEP_DESC[5]="kernel, microcode, fwupd, thermald"
@@ -113,13 +113,34 @@ step_2() {
     libegl-mesa0 \
     libglx-mesa0 \
     mesa-utils \
-    intel-media-va-driver \
     intel-gpu-tools 2>/dev/null || true
+
+  # non-free driver required for H264/VP9/AV1 hardware decoding (e.g. YouTube)
+  apt install -y \
+    intel-media-va-driver-non-free \
+    i965-va-driver-shaders \
+    vainfo 2>/dev/null || true
 
   if command -v ubuntu-drivers &>/dev/null; then
     info "Checking recommended drivers..."
     ubuntu-drivers install 2>/dev/null || warn "No additional recommended drivers found"
   fi
+
+  # Ensure iHD is used (Intel Gen 8+ / Tiger Lake)
+  if ! grep -q "LIBVA_DRIVER_NAME" /etc/environment 2>/dev/null; then
+    echo "LIBVA_DRIVER_NAME=iHD" >> /etc/environment
+    info "LIBVA_DRIVER_NAME=iHD set in /etc/environment"
+  fi
+
+  # Enable VAAPI hardware video decoding in Chrome (Wayland)
+  local chrome_desktop="/usr/share/applications/google-chrome.desktop"
+  if [[ -f "$chrome_desktop" ]] && ! grep -q "VaapiVideoDecoder" "$chrome_desktop"; then
+    sed -i \
+      's|Exec=/usr/bin/google-chrome-stable |Exec=/usr/bin/google-chrome-stable --enable-features=VaapiVideoDecoder,VaapiVideoEncoder,VaapiIgnoreDriverChecks --disable-features=UseChromeOSDirectVideoDecoder |g' \
+      "$chrome_desktop"
+    info "Chrome VAAPI flags configured in desktop entry"
+  fi
+
   info "Video drivers verified/updated"
 }
 
