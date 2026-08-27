@@ -79,7 +79,7 @@ STEP_DESC[4]="dkms, bluez"
 STEP_DESC[5]="kernel, microcode, fwupd, thermald"
 STEP_DESC[6]="build deps + install Homebrew"
 STEP_DESC[7]="docker-ce + compose plugin"
-STEP_DESC[8]="git curl wget vim fish starship asdf bat"
+STEP_DESC[8]="git curl wget vim fish starship asdf bat pnpm"
 STEP_DESC[9]="fish config + python/node via asdf"
 STEP_DESC[10]="download and install latest JetBrains Mono"
 STEP_DESC[11]="install Zed for current user"
@@ -243,7 +243,7 @@ EOF
 
 step_8() {
   local pkg
-  for pkg in git curl wget vim fish starship asdf bat; do
+  for pkg in git curl wget vim fish starship asdf bat pnpm; do
     brew_ensure_pkg "$pkg"
   done
 
@@ -569,6 +569,7 @@ print_summary() {
   echo "  Git:        $(brew_run 'git --version' 2>/dev/null | head -1 || echo 'N/A')"
   echo "  Fish:       $(brew_run 'fish --version' 2>/dev/null | head -1 || echo 'N/A')"
   echo "  bat:        $(brew_run 'bat --version' 2>/dev/null | head -1 || echo 'N/A')"
+  echo "  pnpm:       $(brew_run 'pnpm --version' 2>/dev/null | head -1 || echo 'N/A')"
   echo "  Starship:   $(brew_run 'starship --version' 2>/dev/null | head -1 || echo 'N/A')"
   echo "  Python:     $(brew_run '$HOME/.asdf/shims/python --version' 2>/dev/null || echo 'N/A')"
   echo "  Node.js:    $(brew_run '$HOME/.asdf/shims/node --version' 2>/dev/null || echo 'N/A')"
