@@ -36,8 +36,8 @@ Setup script for drivers and dev tooling.
 ### Recommended: via `git clone`
 
 ```bash
-git clone https://github.com/carvalhocaio/ubuntu-drivers.git
-cd ubuntu-drivers
+git clone https://github.com/carvalhocaio/linux-drivers.git
+cd linux-drivers
 sudo ./setup.sh
 ```
 
