@@ -433,6 +433,8 @@ step_18() {
   as_user "git config --global user.email 'caiocarvalho.py@gmail.com'"
   as_user "git config --global user.username 'carvalhocaio'"
   as_user "git config --global init.defaultBranch main"
+  as_user "git config --global pull.rebase false"
+  as_user "git config --global core.editor vim"
   info "Git global config set"
 
   brew_ensure_pkg "rtk"
