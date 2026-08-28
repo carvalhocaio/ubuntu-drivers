@@ -289,7 +289,7 @@ STAREOF
 
   brew_run "asdf plugin add python || true"
   brew_run "asdf plugin add nodejs || true"
-  brew_run "asdf install python 3.10.14 && asdf set --home python 3.10.14"
+  brew_run "asdf install python 3.11.16 && asdf set --home python 3.11.16"
   brew_run "asdf install nodejs 24.14.0 && asdf set --home nodejs 24.14.0"
 
   if brew_run "node --version >/dev/null && npm --version >/dev/null"; then

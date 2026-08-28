@@ -14,7 +14,7 @@ Setup script for drivers and dev tooling.
 | 6 | **Build + Brew** | `build-essential`, `libssl-dev`, and Homebrew bootstrap/update |
 | 7 | **Docker** | Docker Engine, CLI, containerd, Buildx, Compose plugin |
 | 8 | **Userland (Brew)** | `git`, `curl`, `wget`, `vim`, `fish`, `starship`, `asdf` |
-| 9 | **Shell + asdf** | Fish config, Starship config, Python 3.10.14, Node.js 24.14.0 |
+| 9 | **Shell + asdf** | Fish config, Starship config, Python 3.11.16, Node.js 24.14.0 |
 | 10 | **Fonts** | JetBrains Mono latest stable (download at runtime) |
 | 11 | **Tools** | Zed (via official install script) |
 | 12 | **Cleanup** | Remove orphaned packages and stale caches |
