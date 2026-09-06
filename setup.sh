@@ -71,6 +71,7 @@ STEP_TITLE[15]="gh CLI"
 STEP_TITLE[16]="Warp Terminal"
 STEP_TITLE[17]="Wallpaper"
 STEP_TITLE[18]="Git config + rtk"
+STEP_TITLE[19]="Video acceleration (OBS/ffmpeg VAAPI)"
 
 STEP_DESC[1]="apt update/upgrade"
 STEP_DESC[2]="mesa, intel media vaapi (non-free), ubuntu-drivers, chrome flags"
@@ -90,6 +91,7 @@ STEP_DESC[15]="install gh CLI via official apt repo"
 STEP_DESC[16]="install Warp (.deb)"
 STEP_DESC[17]="set GNOME wallpaper"
 STEP_DESC[18]="git global config + install rtk via brew"
+STEP_DESC[19]="intel-media-va-driver-non-free, vainfo, obs-studio, ffmpeg + render/video groups"
 
 run_step() {
   local n="$1"
@@ -453,6 +455,13 @@ step_18() {
   info "rtk initialised"
 }
 
+step_19() {
+  apt update
+  apt install -y intel-media-va-driver-non-free vainfo obs-studio ffmpeg
+  usermod -aG render,video "$REAL_USER"
+  info "Video acceleration drivers installed (relogin required for group changes)"
+}
+
 choose_steps() {
   local i
   local mark
@@ -460,7 +469,7 @@ choose_steps() {
   local key
   local current=1
   local all_selected
-  local -i max_step=18
+  local -i max_step=19
   declare -A selected
 
   for i in $(seq 1 "$max_step"); do

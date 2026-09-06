@@ -23,6 +23,8 @@ Setup script for drivers and dev tooling.
 | 15 | **CLI** | gh CLI via official apt repo (`cli.github.com`) |
 | 16 | **Terminal** | Warp latest `.deb` (download via `app.warp.dev/download?package=deb`) |
 | 17 | **Desktop** | Set GNOME wallpaper to `assets/wallpapers/red_distortion_3.jpg` (`zoom`) |
+| 18 | **Git + rtk** | Git global config + install `rtk` via Homebrew |
+| 19 | **Video Acceleration** | `intel-media-va-driver-non-free`, `vainfo`, `obs-studio`, `ffmpeg` + add user to `render`/`video` groups |
 
 ## Hardware
 
